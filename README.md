@@ -104,5 +104,5 @@ Importa [`docs/postman/alquileres.postman_collection.json`](./docs/postman/alqui
 ## Estado y revisión del equipo
 
 - La implementación ABP hasta Semana 8 y sus instrucciones están en este repositorio.
-- El documento de Hito 1 identifica a Juan Correa como integrante reportado y señala que debe confirmarse con el profesor si se autorizó el trabajo individual (la guía describe equipos de 2 a 3 personas).
+- El documento de Hito 1 identifica a Juan Correa como integrante en modalidad individual autorizada.
 - Antes de entregar, prueben el procedimiento de arranque en un clon limpio y comprueben los IDs/datos de Postman.

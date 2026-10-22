@@ -17,7 +17,7 @@ Guía oficial consultada: [Programación web 2 — material del curso](https://s
 
 ## Hitos del proyecto ABP
 
-- **Hito 1 · Semana 2:** dominio, equipo, diagramas de casos de uso, clases, secuencia y BPMN; README inicial. Los diagramas de dominio están en [`hito-1-modelado.md`](./hito-1-modelado.md). El archivo declara el trabajo individual reportado y deja explícito que debe confirmarse con el profesor, porque la guía describe equipos de 2 a 3 personas.
+- **Hito 1 · Semana 2:** dominio, integrante, diagramas de casos de uso, clases, secuencia y BPMN; README inicial. Los diagramas de dominio y la modalidad individual autorizada están en [`hito-1-modelado.md`](./hito-1-modelado.md).
 - **Hito 2 · Semana 7:** API PostgreSQL + Prisma 7, capas, validación, relación 1-N, transacción con conflicto y rollback, seed repetible, Postman y README desde cero.
 - **Semana 8:** autenticación con bcrypt/JWT y autorización por roles se aplican al ABP como avance técnico. La guía del curso también describe un Parcial 1 distinto, con enunciado propio; no se confunde esa evaluación con este proyecto.
 
