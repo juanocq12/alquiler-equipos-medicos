@@ -1,72 +1,50 @@
-import pkg from '@prisma/client';
-const { PrismaClient } = pkg;
-const prisma = new PrismaClient();
+import * as equiposService from '../services/equipos.service.js';
+import { notFound } from '../utils/errors.js';
 
 export async function listar(req, res, next) {
   try {
-    const equipos = await prisma.equipo.findMany({
-      orderBy: { nombre: 'asc' }
+    const equipos = await equiposService.listarEquipos({
+      disponibles: req.query.disponibles === true
     });
-    res.json(equipos);
+    return res.json(equipos);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
 export async function obtener(req, res, next) {
   try {
-    const equipo = await prisma.equipo.findUnique({ where: { id: Number(req.params.id) } });
-    if (!equipo) {
-      return res.status(404).json({ error: 'Equipo no encontrado' });
-    }
-    res.json(equipo);
+    const equipo = await equiposService.obtenerEquipo(Number(req.params.id));
+    if (!equipo) throw notFound('Equipo no encontrado');
+    return res.json(equipo);
   } catch (error) {
-    next(error);
+    return next(error);
   }
 }
 
 export async function crear(req, res, next) {
   try {
-    const equipo = await prisma.equipo.create({
-      data: {
-        nombre: req.body.nombre,
-        descripcion: req.body.descripcion,
-        precioDia: Number(req.body.precioDia),
-        stock: Number(req.body.stock || 0)
-      }
-    });
-    res.status(201).json(equipo);
+    const equipo = await equiposService.crearEquipo(req.body);
+    return res.status(201).json(equipo);
   } catch (error) {
-    if (error.code === 'P2002') {
-      return res.status(409).json({ error: 'Ya existe un equipo con ese nombre' });
-    }
-    next(error);
+    return next(error);
   }
 }
 
 export async function actualizar(req, res, next) {
   try {
-    const equipo = await prisma.equipo.update({
-      where: { id: Number(req.params.id) },
-      data: req.body
-    });
-    res.json(equipo);
+    const equipo = await equiposService.actualizarEquipo(Number(req.params.id), req.body);
+    return res.json(equipo);
   } catch (error) {
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Equipo no encontrado' });
-    }
-    next(error);
+    return next(error);
   }
 }
 
 export async function eliminar(req, res, next) {
   try {
-    await prisma.equipo.delete({ where: { id: Number(req.params.id) } });
-    res.status(204).end();
+    await equiposService.eliminarEquipo(Number(req.params.id));
+    return res.status(204).end();
   } catch (error) {
-    if (error.code === 'P2025') {
-      return res.status(404).json({ error: 'Equipo no encontrado' });
-    }
-    next(error);
+    return next(error);
   }
 }

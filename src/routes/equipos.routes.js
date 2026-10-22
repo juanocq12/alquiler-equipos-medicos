@@ -6,7 +6,7 @@ import { requireAuth, requireRole } from '../middlewares/auth.js';
 
 const router = Router();
 
-router.get('/', [
+router.get('/', requireAuth, [
   query('disponibles').optional().isBoolean().toBoolean()
 ], validar, ctrl.listar);
 

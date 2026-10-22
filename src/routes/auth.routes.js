@@ -9,13 +9,12 @@ const router = Router();
 router.post('/register', [
   body('nombre').isString().trim().notEmpty(),
   body('email').isEmail(),
-  body('password').isLength({ min: 6 }),
-  body('rol').optional().isIn(['CLIENTE', 'ADMIN'])
+  body('password').isString().isLength({ min: 6 })
 ], validar, authController.register);
 
 router.post('/login', [
   body('email').isEmail(),
-  body('password').isLength({ min: 6 })
+  body('password').isString().notEmpty()
 ], validar, authController.login);
 
 router.get('/me', requireAuth, authController.me);

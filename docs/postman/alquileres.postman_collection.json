@@ -1,92 +1,120 @@
 {
   "info": {
-    "name": "Alquiler Equipos Médicos - Colección",
+    "name": "Alquiler de Equipos Médicos - Semana 8",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-    "version": "1.0.0"
+    "version": "2.0.0"
   },
   "item": [
     {
-      "name": "Register",
+      "name": "Register cliente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 201) pm.collectionVariables.set('token', pm.response.json().token);"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"nombre\": \"Ana\",\n  \"email\": \"ana@clinica.com\",\n  \"password\": \"123456\",\n  \"rol\": \"CLIENTE\"\n}"
+          "raw": "{\n  \"nombre\": \"Ana\",\n  \"email\": \"ana@clinica.com\",\n  \"password\": \"123456\"\n}"
         },
-        "url": {
-          "raw": "{{base_url}}/api/auth/register",
-          "host": ["{{base_url}}"],
-          "path": ["api", "auth", "register"]
-        }
+        "url": "{{base_url}}/api/auth/register"
       }
     },
     {
-      "name": "Login",
+      "name": "Login cliente",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) pm.collectionVariables.set('token', pm.response.json().token);"
+            ]
+          }
+        }
+      ],
       "request": {
         "method": "POST",
-        "header": [
-          { "key": "Content-Type", "value": "application/json" }
-        ],
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"email\": \"ana@clinica.com\",\n  \"password\": \"123456\"\n}"
         },
-        "url": {
-          "raw": "{{base_url}}/api/auth/login",
-          "host": ["{{base_url}}"],
-          "path": ["api", "auth", "login"]
-        }
+        "url": "{{base_url}}/api/auth/login"
       }
     },
     {
-      "name": "Me (token required)",
+      "name": "Login admin",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "if (pm.response.code === 200) pm.collectionVariables.set('admin_token', pm.response.json().token);"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@clinica.com\",\n  \"password\": \"cambia-esta-clave\"\n}"
+        },
+        "url": "{{base_url}}/api/auth/login"
+      }
+    },
+    {
+      "name": "Me (token requerido)",
       "request": {
         "method": "GET",
-        "header": [
-          { "key": "Authorization", "value": "Bearer {{token}}" }
-        ],
-        "url": {
-          "raw": "{{base_url}}/api/auth/me",
-          "host": ["{{base_url}}"],
-          "path": ["api", "auth", "me"]
-        }
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/api/auth/me"
       }
     },
     {
       "name": "Listar equipos",
       "request": {
         "method": "GET",
-        "url": {
-          "raw": "{{base_url}}/api/equipos",
-          "host": ["{{base_url}}"],
-          "path": ["api", "equipos"]
-        }
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{base_url}}/api/equipos"
       }
     },
     {
-      "name": "Crear equipo (Admin)",
+      "name": "Crear equipo (ADMIN)",
       "request": {
         "method": "POST",
         "header": [
           { "key": "Content-Type", "value": "application/json" },
-          { "key": "Authorization", "value": "Bearer {{token}}" }
+          { "key": "Authorization", "value": "Bearer {{admin_token}}" }
         ],
         "body": {
           "mode": "raw",
           "raw": "{\n  \"nombre\": \"Ventilador X\",\n  \"descripcion\": \"Ventilador portátil\",\n  \"precioDia\": 50000,\n  \"stock\": 5\n}"
         },
-        "url": {
-          "raw": "{{base_url}}/api/equipos",
-          "host": ["{{base_url}}"],
-          "path": ["api", "equipos"]
-        }
+        "url": "{{base_url}}/api/equipos"
       }
     },
     {
-      "name": "Crear alquiler",
+      "name": "Listar usuarios (ADMIN)",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{admin_token}}" }],
+        "url": "{{base_url}}/api/usuarios"
+      }
+    },
+    {
+      "name": "Crear alquiler autenticado",
       "request": {
         "method": "POST",
         "header": [
@@ -95,18 +123,37 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"usuarioId\": 1,\n  \"fechaInicio\": \"2026-10-20\",\n  \"fechaFin\": \"2026-10-22\",\n  \"items\": [\n    {\n      \"equipoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}"
+          "raw": "{\n  \"fechaInicio\": \"2026-10-25\",\n  \"fechaFin\": \"2026-10-27\",\n  \"items\": [\n    {\n      \"equipoId\": 1,\n      \"cantidad\": 1\n    }\n  ]\n}"
         },
-        "url": {
-          "raw": "{{base_url}}/api/alquileres",
-          "host": ["{{base_url}}"],
-          "path": ["api", "alquileres"]
-        }
+        "url": "{{base_url}}/api/alquileres"
+      }
+    },
+    {
+      "name": "Sin token (espera 401)",
+      "request": {
+        "method": "GET",
+        "url": "{{base_url}}/api/auth/me"
+      }
+    },
+    {
+      "name": "Sin permisos (CLIENTE crea equipo, espera 403)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"nombre\": \"Equipo no autorizado\",\n  \"precioDia\": 1000,\n  \"stock\": 1\n}"
+        },
+        "url": "{{base_url}}/api/equipos"
       }
     }
   ],
   "variable": [
     { "key": "base_url", "value": "http://localhost:3000" },
-    { "key": "token", "value": "" }
+    { "key": "token", "value": "" },
+    { "key": "admin_token", "value": "" }
   ]
 }

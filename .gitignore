@@ -15,9 +15,6 @@ pids
 .env
 .env.local
 
-# Prisma
-/prisma/migrations
-
 # Optional npm cache directory
 .npm
 

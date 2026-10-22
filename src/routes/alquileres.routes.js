@@ -10,10 +10,11 @@ router.get('/', requireAuth, ctrl.listar);
 router.get('/:id', requireAuth, [param('id').isInt({ min: 1 })], validar, ctrl.obtener);
 
 router.post('/', requireAuth, [
-  body('usuarioId').isInt({ min: 1 }),
   body('fechaInicio').isISO8601(),
   body('fechaFin').isISO8601(),
-  body('items').isArray({ min: 1 })
+  body('items').isArray({ min: 1 }),
+  body('items.*.equipoId').isInt({ min: 1 }),
+  body('items.*.cantidad').isInt({ min: 1 })
 ], validar, ctrl.crear);
 
 export default router;

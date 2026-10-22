@@ -1,22 +1,29 @@
 import jwt from 'jsonwebtoken';
 import { unauthorized, forbidden } from '../utils/errors.js';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'supersecreto-de-desarrollo';
-
 export function requireAuth(req, res, next) {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader || !/^Bearer\s+\S+$/i.test(authHeader)) {
     return next(unauthorized('Token no enviado'));
   }
 
-  const token = authHeader.split(' ')[1];
+  const secret = process.env.JWT_SECRET;
+  if (!secret) {
+    return next(new Error('JWT_SECRET no está configurado'));
+  }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const token = authHeader.replace(/^Bearer\s+/i, '');
+    const payload = jwt.verify(token, secret);
+    if (!payload || typeof payload !== 'object' ||
+        !Number.isInteger(payload.userId) ||
+        !['CLIENTE', 'ADMIN'].includes(payload.role)) {
+      return next(unauthorized('Token inválido o expirado'));
+    }
     req.user = payload;
-    next();
-  } catch (error) {
+    return next();
+  } catch {
     return next(unauthorized('Token inválido o expirado'));
   }
 }

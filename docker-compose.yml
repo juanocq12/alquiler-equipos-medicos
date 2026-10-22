@@ -1,15 +1,19 @@
-version: '3.8'
 services:
   db:
     image: postgres:16
     container_name: alquiler-db
     environment:
-      - POSTGRES_USER=campuseats
-      - POSTGRES_PASSWORD=secreto123
-      - POSTGRES_DB=alquiler
+      POSTGRES_USER: campuseats
+      POSTGRES_PASSWORD: secreto123
+      POSTGRES_DB: alquiler
     ports:
-      - "5433:5432"
+      - "5434:5432"
     volumes:
       - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U campuseats -d alquiler"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 volumes:
   db_data:
