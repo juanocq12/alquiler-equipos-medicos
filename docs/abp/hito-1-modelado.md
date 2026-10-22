@@ -3,7 +3,7 @@
 ## Equipo y dominio
 
 - **Dominio elegido:** alquiler de equipos médicos.
-- **Integrantes:** completar con los nombres reales del equipo antes de entregar; no se inventan integrantes.
+- **Integrante reportado:** Juan Correa (trabajo individual actualmente). La guía del ABP indica equipos de 2 a 3 personas; confirmar con el profesor si esta modalidad individual está autorizada antes de presentar el hito.
 - **Proceso principal:** un cliente autenticado solicita uno o más equipos para un rango de fechas. El sistema valida el usuario, las fechas, la existencia y el stock; si hay disponibilidad, registra el alquiler y descuenta el inventario. Si no, rechaza la operación sin modificar la base.
 
 ## Casos de uso
