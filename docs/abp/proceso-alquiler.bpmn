@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  id="Definitions_AlquilerEquipos" targetNamespace="https://alquiler-equipos-medicos.example/bpmn">
+  <bpmn:process id="Proceso_CrearAlquiler" name="Crear alquiler de equipos médicos" isExecutable="false">
+    <bpmn:startEvent id="Inicio_Solicitud" name="Solicitud de alquiler"/>
+    <bpmn:task id="Enviar_Solicitud" name="Enviar equipos y fechas"/>
+    <bpmn:serviceTask id="Validar_Entrada" name="Validar autenticación, fechas y datos"/>
+    <bpmn:serviceTask id="Validar_Stock" name="Consultar equipos y disponibilidad"/>
+    <bpmn:exclusiveGateway id="Gateway_Disponibilidad" name="¿Hay stock suficiente?"/>
+    <bpmn:serviceTask id="Transaccion_Alquiler" name="Descontar stock y crear alquiler e items"/>
+    <bpmn:endEvent id="Fin_Exito" name="Alquiler creado (201)"/>
+    <bpmn:endEvent id="Fin_Conflicto" name="Rechazar y revertir (409)"/>
+    <bpmn:sequenceFlow id="Flujo_1" sourceRef="Inicio_Solicitud" targetRef="Enviar_Solicitud"/>
+    <bpmn:sequenceFlow id="Flujo_2" sourceRef="Enviar_Solicitud" targetRef="Validar_Entrada"/>
+    <bpmn:sequenceFlow id="Flujo_3" sourceRef="Validar_Entrada" targetRef="Validar_Stock"/>
+    <bpmn:sequenceFlow id="Flujo_4" sourceRef="Validar_Stock" targetRef="Gateway_Disponibilidad"/>
+    <bpmn:sequenceFlow id="Flujo_Si" name="Sí" sourceRef="Gateway_Disponibilidad" targetRef="Transaccion_Alquiler"/>
+    <bpmn:sequenceFlow id="Flujo_No" name="No" sourceRef="Gateway_Disponibilidad" targetRef="Fin_Conflicto"/>
+    <bpmn:sequenceFlow id="Flujo_5" sourceRef="Transaccion_Alquiler" targetRef="Fin_Exito"/>
+  </bpmn:process>
+</bpmn:definitions>

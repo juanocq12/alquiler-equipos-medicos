@@ -1,46 +1,70 @@
-# Alquiler de equipos médicos — Semana 8
+# Alquiler de equipos médicos — avance ABP hasta Semana 8
 
-API REST en JavaScript con Node.js, Express, PostgreSQL y Prisma. Incluye registro e inicio de sesión con JWT, roles `CLIENTE` y `ADMIN`, gestión de equipos y creación transaccional de alquileres con descuento de stock.
+API REST de alquiler de equipos médicos construida en JavaScript con Node.js, Express, PostgreSQL y Prisma 7. El dominio, sus relaciones y la operación transaccional de alquiler se acompañan de autenticación JWT y roles `CLIENTE`/`ADMIN`.
+
+## Relación con el curso
+
+El detalle de alcance por semana e hitos ABP está en [`docs/abp/alcance-semanas-1-8.md`](./docs/abp/alcance-semanas-1-8.md).
+
+| Semana | Aplicación en este repositorio |
+| --- | --- |
+| 1 | Comunicación HTTP: API JSON, métodos y respuestas HTTP. |
+| 2 | Dominio y proceso modelados en [`docs/abp/hito-1-modelado.md`](./docs/abp/hito-1-modelado.md) y [`docs/abp/proceso-alquiler.bpmn`](./docs/abp/proceso-alquiler.bpmn). Completar allí los nombres reales del equipo. |
+| 3 | JavaScript moderno, módulos ES y operaciones asíncronas con Node.js. |
+| 4 | Express y separación `routes → controllers → services`. |
+| 5 | API REST, validación de entradas y middleware central de errores HTTP. |
+| 6 | PostgreSQL, Prisma 7, esquema, migraciones y cliente generado. |
+| 7 | Relaciones, seed re-ejecutable, lectura sin exponer hashes y alquiler transaccional con respuesta `409` y rollback. |
+| 8 | Registro/login con bcrypt y JWT, middleware de autenticación y autorización por roles. |
+
+El Parcial 1 de la guía es una evaluación distinta del proyecto ABP. Este repositorio sigue siendo el dominio elegido para el ABP.
 
 ## Requisitos
 
-- Node.js 20 o superior
-- Docker Desktop
+- Node.js 20.19 o superior
+- Docker Desktop con Compose
 - npm
 
-## Instalación y arranque
+Las versiones de Prisma y del adaptador PostgreSQL están fijadas en `package.json` y `package-lock.json`.
 
-1. Clona el repositorio y abre una terminal en su carpeta.
-2. Copia `.env.example` como `.env`. Ajusta `DATABASE_URL` y `JWT_SECRET` si es necesario; no compartas ni subas `.env`.
-3. Instala dependencias y levanta PostgreSQL:
+## Arranque desde cero
 
-   ```bash
-   npm install
-   docker compose up -d
-   ```
+En una terminal de PowerShell dentro de la carpeta del proyecto:
 
-4. Aplica las migraciones y genera el cliente Prisma:
+```powershell
+Copy-Item .env.example .env
+npm install
+docker compose up -d
+npx prisma migrate deploy
+npx prisma generate
+npx prisma db seed
+npm run dev
+```
 
-   ```bash
-   npx prisma migrate dev
-   npx prisma generate
-   ```
+La API queda en `http://localhost:3000` (o el `PORT` de `.env`). La base local de Docker se publica en `localhost:5434`, base `alquiler`, usuario `campuseats`. El puerto 5434 evita interferir con otros PostgreSQL locales en 5432/5433. `DATABASE_URL` del ejemplo coincide con `docker-compose.yml`. No subas `.env` ni uses `docker compose down -v` si quieres conservar los datos.
 
-5. Inicia la API:
+Para desarrollo con cambios en el esquema, ejecuta `npm run prisma:migrate -- --name nombre_del_cambio` para crear y aplicar una migración. En un clon normal, usa las migraciones ya versionadas con `migrate deploy`.
 
-   ```bash
-   npm run dev
-   ```
+### Datos de desarrollo
 
-La API queda disponible en `http://localhost:3000` (o en el puerto definido en `.env`). Para una base ya migrada, `npm run prisma:deploy` aplica las migraciones pendientes sin crear nuevas.
+El seed usa `upsert` y se puede repetir:
 
-La configuración de ejemplo usa PostgreSQL en `localhost:5434`, base `alquiler`, usuario `campuseats` y contraseña local `secreto123`; coincide con `docker-compose.yml` y evita interferir con otros PostgreSQL locales que usen el puerto `5433`. Si ya existe el volumen `db_data`, conserva sus datos al levantar o bajar el contenedor. No uses `docker compose down -v` salvo que quieras borrar la base local.
+```bash
+npx prisma db seed
+```
+
+Crea dos cuentas de desarrollo y cinco equipos. Credenciales iniciales locales:
+
+- Admin: `admin@alquiler.local` / `Admin123!`
+- Cliente: `cliente@alquiler.local` / `Cliente123!`
+
+No uses estas contraseñas en producción. El seed no sobrescribe las contraseñas ni el stock de registros que ya existen.
 
 ## Rutas
 
 | Método | Ruta | Acceso |
 | --- | --- | --- |
-| `POST` | `/api/auth/register` | Público; crea un usuario `CLIENTE` |
+| `POST` | `/api/auth/register` | Público; siempre crea rol `CLIENTE` |
 | `POST` | `/api/auth/login` | Público |
 | `GET` | `/api/auth/me` | Autenticado |
 | `GET` | `/api/equipos` | Autenticado |
@@ -48,38 +72,37 @@ La configuración de ejemplo usa PostgreSQL en `localhost:5434`, base `alquiler`
 | `POST`, `PUT`, `DELETE` | `/api/equipos` y `/api/equipos/:id` | Solo `ADMIN` |
 | `GET` | `/api/usuarios` y `/api/usuarios/:id` | Solo `ADMIN` |
 | `POST` | `/api/usuarios` | Solo `ADMIN` |
-| `GET` | `/api/alquileres` y `/api/alquileres/:id` | Autenticado; `CLIENTE` solo ve sus alquileres |
-| `POST` | `/api/alquileres` | Autenticado |
+| `GET` | `/api/alquileres` y `/api/alquileres/:id` | Autenticado; `CLIENTE` solo ve los propios |
+| `POST` | `/api/alquileres` | Autenticado; usuario derivado del token |
 
-Las respuestas de usuarios y alquileres nunca incluyen `passwordHash`. Al crear un alquiler, el usuario se toma del token, se validan fechas, equipos y stock, y se guarda el alquiler, sus items y el descuento de inventario dentro de una transacción. Si el stock no alcanza, responde `409` y la transacción revierte todos los cambios.
+Las rutas con entrada validan los parámetros, consulta o cuerpo antes de ejecutar la lógica. Las respuestas nunca incluyen `passwordHash`. El cliente solicita las fechas y equipos; no puede enviar un `usuarioId` distinto para crear un alquiler.
 
-## Roles
+### Operación transaccional
 
-- `CLIENTE`: puede consultar equipos autenticado, crear alquileres y consultar únicamente sus propios alquileres.
-- `ADMIN`: además puede crear, actualizar y eliminar equipos y consultar/crear usuarios.
+`POST /api/alquileres` comprueba el usuario, las fechas, los equipos y el stock; calcula el total; descuenta existencias con una actualización condicional; y crea el alquiler y sus items dentro de una transacción. Las cantidades repetidas del mismo equipo se suman para validar disponibilidad. Si falta stock, responde `409` y no deja cambios parciales en la base.
 
-El registro público siempre crea `CLIENTE`; no acepta que el cliente se asigne el rol `ADMIN`. Para preparar el administrador inicial en desarrollo, registra una cuenta y cambia su campo `rol` a `ADMIN` desde Prisma Studio:
+## Roles y códigos HTTP
 
-```bash
-npx prisma studio
-```
-
-En producción, provisiona el primer administrador mediante un proceso administrativo seguro. No dejes habilitada una ruta pública que permita asignar roles privilegiados.
+- `CLIENTE`: consulta el catálogo autenticado, crea alquileres y solo puede leer sus propios alquileres.
+- `ADMIN`: gestiona equipos y consulta/crea usuarios.
+- `400`: JSON o datos inválidos.
+- `401`: credenciales o token ausentes/inválidos.
+- `403`: usuario autenticado sin el rol requerido.
+- `404`: recurso no encontrado o alquiler no visible para el cliente.
+- `409`: email/equipo duplicado o stock insuficiente.
 
 ## Probar con Postman
 
-Importa [`docs/postman/alquileres.postman_collection.json`](./docs/postman/alquileres.postman_collection.json). La colección incluye registro, login, `/me`, listar equipos, crear equipo como administrador, crear alquiler, petición sin token y caso de usuario sin permisos.
+Importa [`docs/postman/alquileres.postman_collection.json`](./docs/postman/alquileres.postman_collection.json).
 
-1. Ejecuta `Register` o `Login cliente`; el token se guarda automáticamente como `token`.
-2. Para la prueba de permisos, utiliza el token `CLIENTE` guardado en `token`.
-3. Crea y configura un administrador inicial como se explicó arriba. Actualiza las credenciales del request `Login admin`, ejecútalo y se guardará `admin_token`.
-4. Ejecuta `Crear equipo (ADMIN)` con ese token y `Crear alquiler` con el token del cliente. Antes, crea el equipo y ajusta sus IDs/fechas si es necesario.
-5. Las peticiones privadas usan `Authorization: Bearer {{token}}` o `{{admin_token}}`. `Sin token` omite deliberadamente el encabezado.
+1. Ejecuta `Login cliente` con los datos del seed, o `Register cliente`; la colección guarda el token de cliente.
+2. Ejecuta `Login admin` con la cuenta del seed; se guarda `admin_token`.
+3. Prueba `/me`, listado de equipos, creación de equipo como admin y creación de alquiler como cliente.
+4. `Sin token` debe responder `401`; `Sin permisos` debe responder `403`.
+5. Para comprobar rollback, solicita más unidades de las disponibles: debe responder `409` y el stock debe permanecer igual.
 
-## Errores HTTP
+## Estado y revisión del equipo
 
-- `400`: JSON o datos inválidos.
-- `401`: token ausente/inválido o credenciales incorrectas.
-- `403`: usuario autenticado sin el rol necesario.
-- `404`: recurso no encontrado o alquiler no visible para el cliente.
-- `409`: email/equipo duplicado o stock insuficiente.
+- La implementación ABP hasta Semana 8 y sus instrucciones están en este repositorio.
+- Falta completar los nombres reales de los integrantes en el documento de Hito 1.
+- Antes de entregar, prueben el procedimiento de arranque en un clon limpio y comprueben los IDs/datos de Postman.

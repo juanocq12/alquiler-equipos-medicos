@@ -1,5 +1,6 @@
 # Node
 /node_modules
+/src/generated/prisma/
 
 # Logs
 npm-debug.log*
