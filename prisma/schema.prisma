@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CLIENTE
+  ADMIN
+}
+
+enum EstadoAlquiler {
+  PENDIENTE
+  ACTIVO
+  FINALIZADO
+  CANCELADO
+}
+
+model Usuario {
+  id           Int       @id @default(autoincrement())
+  nombre       String
+  email        String    @unique
+  passwordHash String
+  rol          Role      @default(CLIENTE)
+  createdAt    DateTime  @default(now())
+  alquileres   Alquiler[]
+}
+
+model Equipo {
+  id          Int      @id @default(autoincrement())
+  nombre      String   @unique
+  descripcion String?
+  precioDia   Int
+  stock       Int      @default(0)
+  createdAt   DateTime @default(now())
+  items       AlquilerItem[]
+}
+
+model Alquiler {
+  id          Int            @id @default(autoincrement())
+  usuario     Usuario        @relation(fields: [usuarioId], references: [id])
+  usuarioId   Int
+  estado      EstadoAlquiler @default(PENDIENTE)
+  fechaInicio DateTime
+  fechaFin    DateTime
+  total       Int
+  createdAt   DateTime       @default(now())
+  items       AlquilerItem[]
+}
+
+model AlquilerItem {
+  id         Int      @id @default(autoincrement())
+  alquiler   Alquiler @relation(fields: [alquilerId], references: [id])
+  alquilerId Int
+  equipo     Equipo   @relation(fields: [equipoId], references: [id])
+  equipoId   Int
+  cantidad   Int
+  precioDia  Int
+}
